@@ -1,3 +1,14 @@
-<div class="bg-primary min-h-screen py-5">
-    <router-outlet/>
+
+<div class="bg-primary min-h-screen">
+    <header class="bg-blue-500 text-white py-4 shadow-md">
+        <div class="container mx-auto text-center">
+          <div class="flex justify-center gap-4">
+            <a routerLink="/" class="hover:text-gray-300 text-lg font-bold">Home</a>
+            <a routerLink="/todo" class="hover:text-gray-300 text-lg font-bold">Todo</a>
+          </div>
+        </div>
+      </header>
+    <main class="flex-grow py-5">
+        <router-outlet></router-outlet>
+      </main>
 </div>
