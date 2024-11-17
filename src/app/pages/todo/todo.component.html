@@ -1,0 +1,41 @@
+<div class="max-w-lg mx-auto mt-8">
+    <h1 class="text-center text-2xl font-bold mb-4">Todo List</h1>
+  
+    <div class="mb-4">
+      <input
+        [(ngModel)]="taskName"
+        placeholder="Enter task"
+        class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [ngClass]="{ 'border-red-500': !taskName.trim() && isTaskNameTouched }"
+        (blur)="isTaskNameTouched = true"
+        [disabled]="isSubmitting"
+      />
+      <div *ngIf="!taskName.trim() && isTaskNameTouched" class="text-red-500 text-sm mt-2">
+        Task name is required.
+      </div>
+    </div>
+  
+    <button
+      (click)="addTask()"
+      class="w-full p-2 rounded mb-4 text-white font-semibold transition-colors duration-300 flex items-center justify-center"
+      [ngClass]="{
+        'bg-blue-500 hover:bg-blue-600': taskName.trim() && !isSubmitting,
+        'bg-gray-300 cursor-not-allowed': !taskName.trim() || isSubmitting
+      }"
+      [disabled]="!taskName.trim() || isSubmitting"
+    >
+    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-900" *ngIf="isSubmitting"></div>
+      <span *ngIf="!isSubmitting">Add Task</span>
+    </button>
+  
+    <div *ngIf="tasks.length === 0" class="text-center text-gray-500">No tasks added yet!</div>
+  
+    <div *ngFor="let task of tasks; let i = index">
+      <app-todo-item
+        [task]="task"
+        (remove)="removeTask(i)"
+        (toggleCompletion)="toggleCompletion(i)"
+      ></app-todo-item>
+    </div>
+  </div>
+  

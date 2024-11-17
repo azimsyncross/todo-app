@@ -1,0 +1,6 @@
+<div class="flex items-center justify-between p-2 bg-gray-200 mb-2 rounded-lg" [ngClass]="{ 'bg-green-200': task.completed }">
+    <input type="checkbox" [(ngModel)]="task.completed" (change)="onToggleCompletion()" class="mr-2" />
+    <span [ngClass]="{ 'line-through': task.completed }">{{ task.name }}</span>
+    <button (click)="onRemove()" class="bg-red-500 text-white p-1 rounded">Delete</button>
+  </div>
+  
