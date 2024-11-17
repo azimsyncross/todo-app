@@ -1,6 +1,20 @@
 <div class="flex items-center justify-between p-2 bg-gray-200 mb-2 rounded-lg" [ngClass]="{ 'bg-green-200': task.completed }">
-    <input type="checkbox" [(ngModel)]="task.completed" (change)="onToggleCompletion()" class="mr-2" />
-    <span [ngClass]="{ 'line-through': task.completed }">{{ task.name }}</span>
+    <input type="checkbox" [(ngModel)]="task.completed" (click)="onToggleCompletion()" class="mr-2" />
+  
+    <!-- Task Name with Edit Option -->
+    <span *ngIf="!isEditing" (click)="startEditing()" [ngClass]="{ 'line-through': task.completed }">
+      {{ task.name }}
+    </span>
+  
+    <input
+      *ngIf="isEditing"
+      [(ngModel)]="editedTaskName"
+      (blur)="saveEdit()"
+      class="border border-gray-300 p-1 rounded"
+      [ngClass]="{ 'border-red-500': !editedTaskName.trim() }"
+      (keyup.enter)="saveEdit()"
+    />
+  
     <button (click)="onRemove()" class="bg-red-500 text-white p-1 rounded">Delete</button>
   </div>
   
