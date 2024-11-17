@@ -1,60 +1,177 @@
-<div class="max-w-lg mx-auto mt-8">
-    <h1 class="text-center text-2xl font-bold mb-4">Todo List</h1>
-  
-   
-  
-    <div class="flex gap-4"><div class="w-3/4 mb-4">
-        <input
-          [(ngModel)]="taskName"
-          placeholder="Enter task"
-          class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          [ngClass]="{ 'border-red-500': !taskName.trim() && isTaskNameTouched }"
-          (blur)="isTaskNameTouched = true"
-          [disabled]="isSubmitting"
-          (keyup.enter)="addTask()"
-        />
-       
-      </div>
-    
+<div class="max-w-4xl mx-auto mt-8 px-4">
+  <h1 class="text-center text-2xl font-bold mb-4">Todo List</h1>
+
+  <!-- Add Task Form -->
+  <div class="flex gap-4 mb-4">
+    <div class="w-3/4">
+      <input
+        [(ngModel)]="taskName"
+        placeholder="Enter task"
+        class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [ngClass]="{ 'border-red-500': !taskName.trim() && isTaskNameTouched }"
+        (blur)="isTaskNameTouched = true"
+        [disabled]="isSubmitting"
+        (keyup.enter)="addTask()"
+      />
+    </div>
+    <button
+      (click)="addTask()"
+      class="w-1/4 p-2 rounded text-white font-semibold transition-colors duration-300 flex items-center justify-center"
+      [ngClass]="{
+        'bg-blue-500 hover:bg-blue-600': taskName.trim() && !isSubmitting,
+        'bg-gray-300 cursor-not-allowed': !taskName.trim() || isSubmitting
+      }"
+      [disabled]="!taskName.trim() || isSubmitting"
+    >
+      <div
+        class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-900"
+        *ngIf="isSubmitting"
+      ></div>
+      <span *ngIf="!isSubmitting">Add Task</span>
+    </button>
+  </div>
+
+  <!-- Validation Message -->
+  <div
+    *ngIf="!taskName.trim() && isTaskNameTouched"
+    class="text-red-500 text-sm mb-4"
+  >
+    Task name is required.
+  </div>
+
+  <!-- Search Input -->
+  <div class="mb-4">
+    <input
+      [(ngModel)]="searchTerm"
+      (input)="onSearch($event)"
+      placeholder="Search tasks..."
+      class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+      [disabled]="isSubmitting || tasks.length === 0"
+    />
+  </div>
+
+  <!-- Date Range Filters -->
+  <div class="mb-4">
+    <div class="flex justify-between items-center mb-2">
+      <h2 class="text-lg font-semibold">Date Range Filter</h2>
       <button
-        (click)="addTask()"
-        class="w-1/4 p-2 rounded mb-4 text-white font-semibold transition-colors duration-300 flex items-center justify-center"
+        (click)="resetDateRange()"
+        class="px-3 py-1 text-sm rounded transition-colors"
         [ngClass]="{
-          'bg-blue-500 hover:bg-blue-600': taskName.trim() && !isSubmitting,
-          'bg-gray-300 cursor-not-allowed': !taskName.trim() || isSubmitting
+          'bg-blue-500 hover:bg-blue-600':
+            dateRange.startDate || dateRange.endDate,
+          'bg-gray-300 cursor-not-allowed':
+            !dateRange.startDate && !dateRange.endDate
         }"
-        [disabled]="!taskName.trim() || isSubmitting"
+        [disabled]="!dateRange.startDate && !dateRange.endDate"
       >
-        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-900" *ngIf="isSubmitting"></div>
-        <span *ngIf="!isSubmitting">Add Task</span>
+        Reset Dates
       </button>
-    
-      
     </div>
-  
-    <div *ngIf="!taskName.trim() && isTaskNameTouched" class="w-full mb-4 text-red-500 text-sm mt-2">
-        Task name is required.
-      </div>
-    <div class="mb-4">
+    <div class="flex gap-4">
+      <div class="w-1/2">
+        <label class="block text-sm font-medium text-gray-700 mb-1"
+          >Start Date</label
+        >
         <input
-          [(ngModel)]="searchTerm"
-          (input)="onSearch($event)"
-          placeholder="Search tasks..."
-          class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-          [disabled]="isSubmitting || tasks.length === 0"
+          type="date"
+          [(ngModel)]="dateRange.startDate"
+          (change)="onDateRangeChange()"
+          class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
-    <div *ngIf="filteredTasks.length === 0" class="text-center text-gray-500">
-      {{ tasks.length === 0 ? 'No tasks added yet!' : 'No matching tasks found.' }}
-    </div>
-  
-    <div *ngFor="let task of filteredTasks">
-      <app-todo-item
-        [task]="task"
-        (remove)="removeTask(task.id)"
-        (toggleCompletion)="toggleCompletion(task.id)"
-        (update)="updateTask(task.id,$event)"
-      ></app-todo-item>
+      <div class="w-1/2">
+        <label class="block text-sm font-medium text-gray-700 mb-1"
+          >End Date</label
+        >
+        <input
+          type="date"
+          [(ngModel)]="dateRange.endDate"
+          (change)="onDateRangeChange()"
+          class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
     </div>
   </div>
-  
+
+  <!-- Tasks Table -->
+  <div class="overflow-x-auto">
+    <table class="w-full border-collapse" *ngIf="filteredTasks.length > 0">
+      <thead>
+        <tr class="bg-gray-100">
+          <th class="p-2 text-left border-b">Status</th>
+          <th
+            class="p-2 text-left border-b cursor-pointer"
+            (click)="sortTasks('name')"
+          >
+            Task Name
+            <span class="ml-1" *ngIf="sortConfig.key === 'name'">
+              {{ sortConfig.direction === "asc" ? "↑" : "↓" }}
+            </span>
+          </th>
+          <th
+            class="p-2 text-left border-b cursor-pointer"
+            (click)="sortTasks('createdAt')"
+          >
+            Created At
+            <span class="ml-1" *ngIf="sortConfig.key === 'createdAt'">
+              {{ sortConfig.direction === "asc" ? "↑" : "↓" }}
+            </span>
+          </th>
+          <th
+            class="p-2 text-left border-b cursor-pointer"
+            (click)="sortTasks('updateAt')"
+          >
+            Updated At
+            <span class="ml-1" *ngIf="sortConfig.key === 'updateAt'">
+              {{ sortConfig.direction === "asc" ? "↑" : "↓" }}
+            </span>
+          </th>
+          <th class="p-2 text-left border-b">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let task of filteredTasks"
+          class="border-b hover:bg-gray-50"
+          [ngClass]="{ 'bg-green-50': task.completed }"
+        >
+          <td class="p-2">
+            <input
+              type="checkbox"
+              [checked]="task.completed"
+              (change)="toggleCompletion(task.id)"
+              class="w-4 h-4"
+            />
+          </td>
+          <td class="p-2" [ngClass]="{ 'line-through': task.completed }">
+            <app-editable-task
+              [task]="task"
+              (update)="updateTask(task.id, $event)"
+            ></app-editable-task>
+          </td>
+          <td class="p-2">{{ task.createdAt | date : "medium" }}</td>
+          <td class="p-2">{{ task.updateAt | date : "medium" }}</td>
+          <td class="p-2">
+            <button
+              (click)="removeTask(task.id)"
+              class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors"
+            >
+              Delete
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- No Tasks Message -->
+  <div
+    *ngIf="filteredTasks.length === 0"
+    class="text-center text-gray-500 py-8"
+  >
+    {{
+      tasks.length === 0 ? "No tasks added yet!" : "No matching tasks found."
+    }}
+  </div>
+</div>
